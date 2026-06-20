@@ -1,12 +1,13 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', 'Malgun Gothic', sans-serif; }
 body { background-color: #f1f5f9; padding: 20px; color: #334155; }
 
-.container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; height: calc(100vh - 40px); }
+.container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; min-height: calc(100vh - 40px); }
 
+/* 사이드바 크기가 찌그러지거나 무한정 늘어나지 않도록 고정 */
 .sidebar {
-    width: 350px; background: white; padding: 20px; border-radius: 12px;
+    width: 350px; flex-shrink: 0; background: white; padding: 20px; border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column;
-    overflow-y: auto;
+    overflow-y: auto; max-height: calc(100vh - 40px);
 }
 
 .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -21,7 +22,7 @@ body { background-color: #f1f5f9; padding: 20px; color: #334155; }
 
 textarea, input {
     width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;
-    margin-bottom: 10px; resize: vertical;
+    margin-bottom: 10px; resize: vertical; box-sizing: border-box;
 }
 
 .grid-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -31,35 +32,35 @@ textarea, input {
     width: 100%; padding: 12px; border: none; background: #e2e8f0; color: #475569;
     border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-bottom: 10px;
 }
-.action-btn.primary { background: #10b981; color: white; font-size: 1.1rem; }
+.action-btn.primary { background: #3b82f6; color: white; font-size: 1.1rem; }
 .action-btn:hover { filter: brightness(0.95); }
 
 .main-content {
     flex: 1; background: white; border-radius: 12px; padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden;
 }
 
 .view-controls { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
 .view-btn {
     padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 20px;
-    cursor: pointer; color: #64748b; transition: 0.2s;
+    cursor: pointer; color: #64748b; transition: 0.2s; font-size: 0.9rem;
 }
 .view-btn.active { background: #475569; color: white; border-color: #475569; }
 
-.classroom { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.classroom { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
 
 .podium {
-    width: 60%; background: #475569; color: white; text-align: center; padding: 10px;
-    border-radius: 8px; font-weight: bold; margin: 20px 0;
+    width: 80%; max-width: 600px; background: #556B2F; color: white; text-align: center; padding: 15px;
+    border-radius: 8px; font-weight: bold; margin: 20px 0; font-size: 1.2rem; letter-spacing: 5px;
 }
-.hidden { display: none; }
+.hidden { display: none !important; }
 
-.seating-grid { display: grid; gap: 10px; margin: 20px 0; justify-content: center; }
+.seating-grid { display: grid; gap: 10px; margin: 20px 0; justify-content: center; width: 100%; max-width: 800px; }
 
 .seat {
-    background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px;
+    background: #fff8e1; border: 2px solid #fde68a; border-radius: 8px;
     padding: 15px 5px; text-align: center; font-weight: bold; font-size: 1.1rem;
     min-width: 80px; min-height: 60px; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02); word-break: keep-all;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); word-break: keep-all; color: #333;
 }
-.seat.empty { background: #f1f5f9; border-style: dashed; color: #94a3b8; font-weight: normal; }
+.seat.empty { background: #f8fafc; border-color: #e2e8f0; color: #94a3b8; font-weight: normal; }
