@@ -42,19 +42,19 @@
                 </div>
 
                 <div class="advanced-section" style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-                    <h3 onclick="toggleAdvanced()" style="cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; font-size: 1rem;">
+                    <h3 onclick="toggleAdvanced()" style="cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; font-size: 1rem; padding: 10px; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
                         <span>🔒 고급 배치 조건 (선택 사항)</span>
                         <span id="advancedIcon">▼</span>
                     </h3>
                     
                     <div id="advancedContent" style="display: none; margin-top: 15px; font-size: 0.9rem;">
-                        <p style="margin-bottom: 5px;">📍 고정석 지정 (이름,행,열)</p>
+                        <p style="margin-bottom: 5px;">📍 고정석 지정 (형식: 이름,행,열)</p>
                         <textarea id="fixedSeatsInput" placeholder="예) 홍길동,1,2&#10;빈 자리,6,6" rows="2" style="width: 100%; margin-bottom: 10px;"></textarea>
                         
-                        <p style="margin-bottom: 5px;">❌ 거리두기 (서로 인접 금지)</p>
+                        <p style="margin-bottom: 5px;">❌ 거리두기 학생 (서로 인접 금지)</p>
                         <textarea id="separateInput" placeholder="예) 김철수,박민지" rows="2" style="width: 100%; margin-bottom: 10px;"></textarea>
                         
-                        <p style="margin-bottom: 5px;">🤝 무조건 짝꿍 (바로 옆/앞뒤)</p>
+                        <p style="margin-bottom: 5px;">🤝 무조건 짝꿍 (바로 옆/앞뒤 배치)</p>
                         <textarea id="pairInput" placeholder="예) 정명훈,오지민" rows="2" style="width: 100%; margin-bottom: 10px;"></textarea>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
 
                 <div class="action-buttons">
-                    <button class="action-btn primary" onclick="generateSeating()">랜덤 자리 배치하기</button>
+                    <button class="action-btn primary" onclick="generateSeating()">조건 반영 랜덤 배치</button>
                     
                     <div style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
                         <input type="number" id="groupSize" value="4" min="2" max="8" style="width: 60px;">
@@ -80,13 +80,13 @@
             </div>
 
             <div class="classroom">
-                <div id="podiumTop" class="podium">칠판 / 교탁</div>
+                <div id="podiumTop" class="podium">칠판 / 교 탁</div>
                 <div id="resultArea">
                     <div style="color: #94a3b8; text-align: center; margin-top: 50px;">
-                        왼쪽 패널에서 설정을 완료하고 '자리 배치하기'를 눌러주세요.
+                        왼쪽 패널에서 설정을 완료하고 '조건 반영 랜덤 배치'를 눌러주세요.
                     </div>
                 </div>
-                <div id="podiumBottom" class="podium hidden">칠판 / 교탁</div>
+                <div id="podiumBottom" class="podium hidden">칠판 / 교 탁</div>
             </div>
         </div>
     </div>
