@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// 고급 조건 접기/펴기 로직
 function toggleAdvanced() {
     const content = document.getElementById('advancedContent');
     const icon = document.getElementById('advancedIcon');
@@ -23,12 +24,20 @@ function toggleAdvanced() {
     }
 }
 
+// 탭 전환 로직 (안정성 강화)
 function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
-    if (event && event.target) {
-        event.target.classList.add('active');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.settings-section');
+    
+    tabBtns.forEach(b => b.classList.remove('active'));
+    sections.forEach(s => s.classList.remove('active'));
+    
+    if (tab === 'student') {
+        tabBtns[0].classList.add('active');
+    } else {
+        tabBtns[1].classList.add('active');
     }
+    
     const targetSettings = document.getElementById(tab + 'Settings');
     if (targetSettings) targetSettings.classList.add('active');
 }
