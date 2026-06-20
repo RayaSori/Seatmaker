@@ -1,5 +1,5 @@
 let currentView = 'student';
-let lastShuffledData = []; // 항상 학생 시점 기준의 1차원 완성 배열을 저장
+let lastShuffledData = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     loadStudents();
@@ -52,16 +52,12 @@ function togglePerspective(mode) {
     }
 }
 
-// 텍스트 구역으로부터 조건 파싱 엔진
 function parseConditions() {
     const fixedSeats = [];
     document.getElementById('fixedSeatsInput').value.split('\n').forEach(line => {
         const tokens = line.split(',').map(t => t.trim());
         if (tokens.length === 3 && tokens[0]) {
-            const name = tokens[0];
-            const r = parseInt(tokens[1]) - 1; // 사용자의 1행 -> 코드의 0번 인덱스
-            const c = parseInt(tokens[2]) - 1;
-            if (!isNaN(r) && !isNaN(c)) fixedSeats.push({ name, r, c });
+            fixedSeats.push({ name: tokens[0], r: parseInt(tokens[1]) - 1, c: parseInt(tokens[2]) - 1 });
         }
     });
 
@@ -80,13 +76,44 @@ function parseConditions() {
     return { fixedSeats, separatePairs, pairButt };
 }
 
-// 핵심 알고리즘: 조건 충족 최적화 시뮬레이터
+function findCoords(name, grid, rows, cols) {
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (grid[r][c] === name) return { r, c };
+        }
+    }
+    return null;
+}
+
+// [수정됨] 1. 물리적 인접 (통로 무시, 거리두기 검증용)
+function isPhysicalAdjacent(p1, p2) {
+    if (!p1 || !p2) return false;
+    const dr = Math.abs(p1.r - p2.r);
+    const dc = Math.abs(p1.c - p2.c);
+    // 상하(1칸) 또는 좌우(1칸)이면 인접한 것으로 간주 (대각선 제외)
+    return (dr === 1 && dc === 0) || (dr === 0 && dc === 1); 
+}
+
+// [수정됨] 2. 짝꿍 인접 (통로 고려, 짝꿍 맺기용)
+function isPairAdjacent(p1, p2, isPairMode) {
+    if (!isPhysicalAdjacent(p1, p2)) return false; // 기본적으로 물리적 인접이어야 함
+    
+    const dc = Math.abs(p1.c - p2.c);
+    // 좌우로 인접해 있는데 짝꿍 모드인 경우
+    if (dc === 1 && isPairMode) {
+        const leftCol = Math.min(p1.c, p2.c);
+        if (leftCol % 2 !== 0) return false; // 왼쪽 좌석의 열 번호가 홀수면 둘 사이에 통로가 있음
+    }
+    return true; // 앞뒤거나, 통로가 없는 같은 책상 짝꿍임
+}
+
 function generateSeating() {
     const list = document.getElementById('studentList').value.split('\n').map(s => s.trim()).filter(s => s !== "");
     if (list.length === 0) return alert('학생 명단을 입력해주세요.');
     
     const rows = parseInt(document.getElementById('rows').value);
     const cols = parseInt(document.getElementById('cols').value);
+    const isPairMode = document.getElementById('pairSeating').checked;
     const totalSeats = rows * cols;
 
     if (totalSeats < list.length) {
@@ -95,42 +122,39 @@ function generateSeating() {
 
     const { fixedSeats, separatePairs, pairButt } = parseConditions();
 
-    // 고정석 이름 추출
+    const allCondNames = [...fixedSeats.map(f=>f.name), ...separatePairs.flat(), ...pairButt.flat()];
+    for (let name of allCondNames) {
+        if (name && !list.includes(name)) {
+            return alert(`⚠️ 입력 오류: 조건에 적힌 '${name}' 학생이 전체 명단에 없습니다. 오타나 띄어쓰기를 확인해주세요.`);
+        }
+    }
+
     const fixedNames = fixedSeats.map(f => f.name);
-    // 고정석을 제외하고 순수하게 랜덤 배치할 학생 풀 생성
     const randomPool = list.filter(name => !fixedNames.includes(name));
 
-    // 빈자리 채우기용 null 삽입
     while (randomPool.length < (totalSeats - fixedSeats.length)) {
         randomPool.push(null);
     }
 
     let success = false;
     let finalGrid1D = [];
-    const MAX_ATTEMPTS = 5000; // 최대 5천 번 연산 시도
+    const MAX_ATTEMPTS = 15000;
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-        // 빈 격자판 양식 구성
         let grid = Array(rows).fill().map(() => Array(cols).fill(null));
         let isConfigValid = true;
 
-        // 1단계: 고정석 먼저 확실하게 배치
         for (let f of fixedSeats) {
-            if (f.r >= 0 && f.r < rows && f.c >= 0 && f.c < cols) {
+            if (f.r >= 0 && f.r < rows && f.c >= 0 && f.c < cols && grid[f.r][f.c] === null) {
                 grid[f.r][f.c] = f.name;
             } else {
-                isConfigValid = false; // 격자 크기를 벗어난 고정석 배치 요구 예외처리
+                isConfigValid = false;
             }
         }
-        if (!isConfigValid) {
-            alert('고정석의 행/열 값이 현재 격자 크기를 벗어났습니다.');
-            return;
-        }
+        if (!isConfigValid) break;
 
-        // 2단계: 남은 학생 풀 무작위 셔플
         let shuffled = [...randomPool].sort(() => Math.random() - 0.5);
         let sIdx = 0;
-
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 if (grid[r][c] === null) {
@@ -139,8 +163,48 @@ function generateSeating() {
             }
         }
 
-        // 3단계: 만들어진 임시 배치안 검증
-        if (validateConstraints(grid, rows, cols, separatePairs, pairButt)) {
+        // [수정됨] 무조건 짝꿍 강제 스왑 시 isPairAdjacent 사용
+        for (let pair of pairButt) {
+            let p1 = findCoords(pair[0], grid, rows, cols);
+            let p2 = findCoords(pair[1], grid, rows, cols);
+            
+            if (p1 && p2 && !isPairAdjacent(p1, p2, isPairMode)) {
+                const neighbors = [
+                    {r: p1.r-1, c: p1.c}, {r: p1.r+1, c: p1.c}, 
+                    {r: p1.r, c: p1.c-1}, {r: p1.r, c: p1.c+1}
+                ].filter(n => n.r >= 0 && n.r < rows && n.c >= 0 && n.c < cols);
+
+                let validTarget = neighbors.find(n => 
+                    isPairAdjacent(p1, n, isPairMode) && 
+                    !fixedSeats.some(f => f.r === n.r && f.c === n.c)
+                );
+
+                if (validTarget) {
+                    let temp = grid[validTarget.r][validTarget.c];
+                    grid[validTarget.r][validTarget.c] = grid[p2.r][p2.c];
+                    grid[p2.r][p2.c] = temp;
+                }
+            }
+        }
+
+        // 4. 최종 검증
+        let constraintPassed = true;
+        
+        // [수정됨] 거리두기는 무조건 통로 무시하고 물리적(isPhysicalAdjacent)으로 가까우면 실패!
+        for (let pair of separatePairs) {
+            const p1 = findCoords(pair[0], grid, rows, cols);
+            const p2 = findCoords(pair[1], grid, rows, cols);
+            if (p1 && p2 && isPhysicalAdjacent(p1, p2)) constraintPassed = false; 
+        }
+
+        // [수정됨] 짝꿍은 통로 고려(isPairAdjacent)해서 안 붙어있으면 실패!
+        for (let pair of pairButt) {
+            const p1 = findCoords(pair[0], grid, rows, cols);
+            const p2 = findCoords(pair[1], grid, rows, cols);
+            if (p1 && p2 && !isPairAdjacent(p1, p2, isPairMode)) constraintPassed = false;
+        }
+
+        if (constraintPassed) {
             finalGrid1D = grid.flat();
             success = true;
             break;
@@ -148,7 +212,7 @@ function generateSeating() {
     }
 
     if (!success) {
-        alert('⚠️ 입력하신 조건(거리두기/짝꿍)이 너무 복잡하여 최적의 자리를 찾지 못했습니다.\n조건을 완화하거나 다시 시도해 주세요.');
+        alert('⚠️ 입력하신 조건이 너무 복잡하여 자리를 찾지 못했습니다.\n서로 모순되는 조건이 없는지 확인하시거나, 거리두기 대상을 조금만 줄여주세요.');
         return;
     }
 
@@ -156,42 +220,6 @@ function generateSeating() {
     renderSeating(lastShuffledData);
 }
 
-// 상하좌우 인접성 검사 및 정밀 검증
-function validateConstraints(grid, rows, cols, separatePairs, pairButt) {
-    function findCoords(name) {
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                if (grid[r][c] === name) return { r, c };
-            }
-        }
-        return null;
-    }
-
-    function isAdjacent(p1, p2) {
-        if (!p1 || !p2) return false;
-        const dr = Math.abs(p1.r - p2.r);
-        const dc = Math.abs(p1.c - p2.c);
-        return (dr === 1 && dc === 0) || (dr === 0 && dc === 1); // 상하 또는 좌우로 1칸 격차 의미
-    }
-
-    // 조건 A 검증: 거리두기 대상이 붙어있는가?
-    for (let pair of separatePairs) {
-        const p1 = findCoords(pair[0]);
-        const p2 = findCoords(pair[1]);
-        if (p1 && p2 && isAdjacent(p1, p2)) return false; 
-    }
-
-    // 조건 B 검증: 무조건 붙어야 할 대상이 떨어져 있는가?
-    for (let pair of pairButt) {
-        const p1 = findCoords(pair[0]);
-        const p2 = findCoords(pair[1]);
-        if (p1 && p2 && !isAdjacent(p1, p2)) return false;
-    }
-
-    return true;
-}
-
-// 화면 랜더링 함수 (시점 전환 연동 기술 적용)
 function renderSeating(data) {
     const rows = parseInt(document.getElementById('rows').value);
     const cols = parseInt(document.getElementById('cols').value);
@@ -205,14 +233,13 @@ function renderSeating(data) {
 
     let displayData = [...data];
 
-    // 중요: 교사 시점 선택 시 상하반전 후 좌우반전 매핑 가동
     if (currentView === 'teacher') {
         let matrix = [];
         for (let i = 0; i < rows; i++) {
             matrix.push(displayData.slice(i * cols, (i + 1) * cols));
         }
-        matrix.reverse(); // 1) 맨 앞줄과 맨 뒷줄 뒤집기 (상하반전)
-        matrix = matrix.map(row => row.reverse()); // 2) 선생님 시선의 좌우 대칭 뒤집기 (좌우반전)
+        matrix.reverse();
+        matrix = matrix.map(row => row.reverse());
         displayData = matrix.flat();
     }
 
@@ -226,7 +253,6 @@ function renderSeating(data) {
             seat.innerText = name;
         }
 
-        // 짝꿍 통로 여백 주기 스타일 적용
         if (isPair && (idx + 1) % 2 === 0 && (idx + 1) % cols !== 0) {
             seat.style.marginRight = '20px';
         }
@@ -237,7 +263,6 @@ function renderSeating(data) {
     resultArea.appendChild(gridLayout);
 }
 
-// 모둠 구성 로직
 function generateGroups() {
     const list = document.getElementById('studentList').value.split('\n').map(s => s.trim()).filter(s => s !== "");
     if (list.length === 0) return alert('명단을 입력해주세요.');
