@@ -24,7 +24,7 @@ function toggleAdvanced() {
     }
 }
 
-// 탭 전환 로직 (안정성 강화)
+// 탭 전환 로직
 function switchTab(tab) {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const sections = document.querySelectorAll('.settings-section');
