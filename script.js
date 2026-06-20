@@ -6,6 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('studentList').addEventListener('input', updateCount);
 });
 
+// [추가됨] 고급 조건 접기/펴기 함수
+function toggleAdvanced() {
+    const content = document.getElementById('advancedContent');
+    const icon = document.getElementById('advancedIcon');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.innerText = '▲';
+    } else {
+        content.style.display = 'none';
+        icon.innerText = '▼';
+    }
+}
+
 function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
@@ -85,7 +98,6 @@ function findCoords(name, grid, rows, cols) {
     return null;
 }
 
-// 거리두기용 인접 (물리적 인접, 통로 무시)
 function isPhysicalAdjacent(p1, p2) {
     if (!p1 || !p2) return false;
     const dr = Math.abs(p1.r - p2.r);
@@ -93,7 +105,6 @@ function isPhysicalAdjacent(p1, p2) {
     return (dr === 1 && dc === 0) || (dr === 0 && dc === 1); 
 }
 
-// 짝꿍용 인접 (통로 고려)
 function isPairAdjacent(p1, p2, isPairMode) {
     if (!isPhysicalAdjacent(p1, p2)) return false; 
     const dc = Math.abs(p1.c - p2.c);
@@ -102,6 +113,11 @@ function isPairAdjacent(p1, p2, isPairMode) {
         if (leftCol % 2 !== 0) return false; 
     }
     return true;
+}
+
+// [추가됨] 빈 자리인지 확인하는 헬퍼 함수
+function isEmptySeat(name) {
+    return name === '빈 자리' || name === '빈자리';
 }
 
 function generateSeating() {
@@ -113,15 +129,18 @@ function generateSeating() {
     const isPairMode = document.getElementById('pairSeating').checked;
     const totalSeats = rows * cols;
 
-    if (totalSeats < list.length) {
-        return alert(`설정된 좌석 수(${totalSeats}칸)가 학생 수(${list.length}명)보다 적습니다.`);
-    }
-
     const { fixedSeats, separatePairs, pairButt } = parseConditions();
+
+    // [수정됨] 실제 학생 수 검증 (빈 자리는 제외하고 계산)
+    const fixedEmptyCount = fixedSeats.filter(f => isEmptySeat(f.name)).length;
+    if (totalSeats - fixedEmptyCount < list.length) {
+        return alert(`고정된 빈 자리를 제외한 좌석 수(${totalSeats - fixedEmptyCount}칸)가 학생 수(${list.length}명)보다 적습니다.`);
+    }
 
     const allCondNames = [...fixedSeats.map(f=>f.name), ...separatePairs.flat(), ...pairButt.flat()];
     for (let name of allCondNames) {
-        if (name && !list.includes(name)) {
+        // [수정됨] '빈 자리'는 전체 명단에 없어도 오류를 띄우지 않도록 예외 처리
+        if (name && !isEmptySeat(name) && !list.includes(name)) {
             return alert(`⚠️ 입력 오류: 조건에 적힌 '${name}' 학생이 전체 명단에 없습니다. 오타나 띄어쓰기를 확인해주세요.`);
         }
     }
@@ -129,7 +148,9 @@ function generateSeating() {
     const fixedNames = fixedSeats.map(f => f.name);
     const randomPool = list.filter(name => !fixedNames.includes(name));
 
-    while (randomPool.length < (totalSeats - fixedSeats.length)) {
+    // [수정됨] 남은 빈자리 수만큼 randomPool에 null을 채워 넣음
+    const remainingSlots = totalSeats - fixedSeats.length;
+    while (randomPool.length < remainingSlots) {
         randomPool.push(null);
     }
 
@@ -143,7 +164,8 @@ function generateSeating() {
 
         for (let f of fixedSeats) {
             if (f.r >= 0 && f.r < rows && f.c >= 0 && f.c < cols && grid[f.r][f.c] === null) {
-                grid[f.r][f.c] = f.name;
+                // [수정됨] 빈 자리를 고정석으로 지정한 경우, 컴퓨터가 헷갈리지 않게 'EMPTY_SEAT'라는 특수 기호로 박아둠
+                grid[f.r][f.c] = isEmptySeat(f.name) ? 'EMPTY_SEAT' : f.name;
             } else {
                 isConfigValid = false;
             }
@@ -198,7 +220,8 @@ function generateSeating() {
         }
 
         if (constraintPassed) {
-            finalGrid1D = grid.flat();
+            // [수정됨] 특수 기호로 박아두었던 'EMPTY_SEAT'를 화면에 그리기 위해 다시 진짜 null로 변환
+            finalGrid1D = grid.flat().map(seat => seat === 'EMPTY_SEAT' ? null : seat);
             success = true;
             break;
         }
@@ -213,7 +236,6 @@ function generateSeating() {
     renderSeating(lastShuffledData);
 }
 
-// [핵심 수정된 시각화 렌더링 함수]
 function renderSeating(data) {
     const rows = parseInt(document.getElementById('rows').value);
     const cols = parseInt(document.getElementById('cols').value);
@@ -225,7 +247,6 @@ function renderSeating(data) {
     gridLayout.className = 'seating-grid';
     gridLayout.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     
-    // 교사 시점일 경우 격자판 전체를 스무스하게 180도 회전
     gridLayout.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
     if (currentView === 'teacher') {
         gridLayout.style.transform = 'rotate(180deg)';
@@ -239,7 +260,6 @@ function renderSeating(data) {
         const seat = document.createElement('div');
         seat.className = 'seat';
         
-        // 자리판이 회전할 때 학생 이름이 거꾸로 보이지 않도록 글씨만 다시 180도 제자리 회전
         seat.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
         if (currentView === 'teacher') {
             seat.style.transform = 'rotate(180deg)';
@@ -254,7 +274,6 @@ function renderSeating(data) {
             seat.innerText = name;
         }
 
-        // 짝꿍 통로 여백 (회전 시 CSS가 방향을 자동으로 계산하므로 깨지지 않습니다)
         if (isPair && (idx + 1) % 2 === 0 && (idx + 1) % cols !== 0) {
             seat.style.marginRight = '20px';
         }
