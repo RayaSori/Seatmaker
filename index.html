@@ -1,97 +1,19 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트 교실 관리자 - 프리미엄 시점 & 조건 배치 에디션</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🏫 스마트 교실 관리자</h1>
-            <p>고정석, 거리두기, 짝꿍 지정까지 한 번에 해결하는 맞춤형 배치 시스템</p>
-        </header>
-
-        <main>
-            <aside class="card settings-card no-print">
-                <div class="tabs">
-                    <button class="tab-btn active" onclick="switchTab('seating')">자리 배치</button>
-                    <button class="tab-btn" onclick="switchTab('grouping')">모둠 구성</button>
-                </div>
-
-                <div class="input-group">
-                    <label for="studentList">학생 명단 (현재 <span id="studentCount">0</span>명)</label>
-                    <textarea id="studentList" placeholder="1번 김철수&#10;2번 이영희..."></textarea>
-                    <button onclick="saveStudents()" class="btn-secondary">명단 저장하기</button>
-                </div>
-
-                <div id="seatingSettings" class="settings-section active">
-                    <div class="row-col-inputs">
-                        <div>
-                            <label>행(세로 줄)</label>
-                            <input type="number" id="rows" value="6" min="1">
-                        </div>
-                        <div>
-                            <label>열(가로 칸)</label>
-                            <input type="number" id="cols" value="6" min="1">
-                        </div>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="pairSeating">
-                        <label for="pairSeating">2명씩 짝꿍 앉기 (통로 생성)</label>
-                    </div>
-
-                    <div class="advanced-conditions">
-                        <h3>🔒 고급 배치 조건 (선택 사항)</h3>
-                        
-                        <div class="cond-group">
-                            <label for="fixedSeatsInput">📍 고정석 지정 (형식: 이름,행,열)</label>
-                            <textarea id="fixedSeatsInput" class="small-text" placeholder="예) 홍길동,1,2&#10;이영희,3,4"></textarea>
-                        </div>
-
-                        <div class="cond-group">
-                            <label for="separateInput">❌ 거리두기 학생 (서로 인접 금지)</label>
-                            <textarea id="separateInput" class="small-text" placeholder="예) 김철수,박민지&#10;이영수,최재현"></textarea>
-                        </div>
-
-                        <div class="cond-group">
-                            <label for="pairInput">🤝 무조건 짝꿍 (바로 옆/앞뒤 배치)</label>
-                            <textarea id="pairInput" class="small-text" placeholder="예) 정명훈,오지민&#10;신동우,유재석"></textarea>
-                        </div>
-                    </div>
-
-                    <button onclick="generateSeating()" class="btn-primary">조건 반영 랜덤 배치</button>
-                </div>
-
-                <div id="groupingSettings" class="settings-section">
-                    <div class="input-group">
-                        <label>한 모둠당 인원</label>
-                        <input type="number" id="groupSize" value="4" min="2">
-                    </div>
-                    <button onclick="generateGroups()" class="btn-primary">랜덤 모둠 구성</button>
-                </div>
-
-                <div class="view-toggle-area">
-                    <label>화면 시점 선택</label>
-                    <div class="toggle-buttons">
-                        <button id="viewStudent" class="view-btn active" onclick="togglePerspective('student')">학생 시점</button>
-                        <button id="viewTeacher" class="view-btn" onclick="togglePerspective('teacher')">교사 시점</button>
-                    </div>
-                </div>
-
-                <button onclick="window.print()" class="btn-print">🖨️ 인쇄 / PDF 저장</button>
-            </aside>
-
-            <section class="card result-card">
-                <div id="podiumTop" class="chalkboard">교 탁 (칠판)</div>
-                <div id="resultArea" class="result-area">
-                    <p class="placeholder">명단과 조건을 입력하고 배치 버튼을 눌러주세요.</p>
-                </div>
-                <div id="podiumBottom" class="chalkboard hidden">선생님 시선 (교탁)</div>
-            </section>
-        </main>
+<div class="advanced-section" style="margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
+    <h3 onclick="toggleAdvanced()" style="cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: space-between;">
+        <span>🔒 고급 배치 조건 (선택 사항)</span>
+        <span id="advancedIcon">▼</span>
+    </h3>
+    
+    <div id="advancedContent" style="display: none; margin-top: 15px;">
+        
+        <p>📍 고정석 지정 (형식: 이름,행,열)</p>
+        <textarea id="fixedSeatsInput" placeholder="예) 홍길동,1,2&#10;빈 자리,6,6" rows="3" style="width: 100%; margin-bottom: 10px;"></textarea>
+        
+        <p>❌ 거리두기 학생 (서로 인접 금지)</p>
+        <textarea id="separateInput" placeholder="예) 김철수,박민지" rows="3" style="width: 100%; margin-bottom: 10px;"></textarea>
+        
+        <p>🤝 무조건 짝꿍 (바로 옆/앞뒤 배치)</p>
+        <textarea id="pairInput" placeholder="예) 정명훈,오지민" rows="3" style="width: 100%; margin-bottom: 10px;"></textarea>
+        
     </div>
-    <script src="script.js"></script>
-</body>
-</html>
+</div>
