@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 자리배치 & 모둠 구성기</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏫 스마트 교실 관리</h1>
+            <p>자리 배치와 모둠 구성을 한 번에 해결하세요.</p>
+        </header>
+
+        <main>
+            <aside class="card settings-card no-print">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('seating')">자리 배치도</button>
+                    <button class="tab-btn" onclick="switchTab('grouping')">모둠 구성</button>
+                </div>
+
+                <div class="input-group">
+                    <label for="studentList">학생 명단 (엔터로 구분, 현재 <span id="studentCount">0</span>명)</label>
+                    <textarea id="studentList" placeholder="1번 홍길동&#10;2번 김철수&#10;..."></textarea>
+                    <button onclick="saveStudents()" class="btn-secondary">명단 저장하기</button>
+                </div>
+
+                <div id="seatingSettings" class="settings-section active">
+                    <div class="row-col-inputs">
+                        <div>
+                            <label for="rows">행 (가로 줄)</label>
+                            <input type="number" id="rows" value="6" min="1">
+                        </div>
+                        <div>
+                            <label for="cols">열 (세로 줄)</label>
+                            <input type="number" id="cols" value="6" min="1">
+                        </div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pairSeating">
+                        <label for="pairSeating">2명씩 짝꿍 앉기 (가운데 통로)</label>
+                    </div>
+                    <button onclick="generateSeating()" class="btn-primary">자리 무작위 배치</button>
+                </div>
+
+                <div id="groupingSettings" class="settings-section">
+                    <div class="input-group">
+                        <label for="groupSize">한 모둠당 인원 수</label>
+                        <input type="number" id="groupSize" value="4" min="2">
+                    </div>
+                    <button onclick="generateGroups()" class="btn-primary">모둠 무작위 구성</button>
+                </div>
+
+                <div class="print-section">
+                    <button onclick="window.print()" class="btn-print">🖨️ 결과물 출력하기</button>
+                </div>
+            </aside>
+
+            <section class="card result-card">
+                <h2 id="resultTitle">결과 화면</h2>
+                <div class="chalkboard">교 탁</div>
+                <div id="resultArea" class="result-area">
+                    <p class="placeholder">설정을 완료하고 버튼을 눌러주세요.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
